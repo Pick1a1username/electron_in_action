@@ -8,6 +8,7 @@ let mainWindow = null;
 
 const openFile = exports.openFile = (targetWindow, file) => {
     const content = fs.readFileSync(file).toString();
+    app.addRecentDocument(file); // This doesn't seem to be needed for Linux.
     targetWindow.setRepresentedFilename(file); // This is only for MacOS.
     targetWindow.webContents.send('file-opened', file, content)
 };
@@ -36,6 +37,20 @@ const getFileFromUser = exports.getFileFromUser = (targetWindow) => {
     files.then( files => {
         if (files.filePaths[0]) openFile(targetWindow, files.filePaths[0]);
     })
+};
+
+const saveHtml = exports.saveHtml = (targetWindow, content) => {
+    const file = dialog.showSaveDialog(targetWindow, {
+        title: 'Save HTML',
+        defaultPath: app.getPath('documents'),
+        filters: [
+            { name: 'HTML Files', extensions: ['html', 'htm'] }
+        ]
+    });
+
+    file.then( file => {
+        if (file.filePath) fs.writeFileSync(file.filePath, content);
+    });
 };
 
 const createWindow = exports.createWindow = () => {
@@ -84,4 +99,13 @@ app.on('window-all-closed', () => {
 
 app.on('activate', (event, hasVisibleWindows) => {
     if (!hasVisibleWindows) createWindow();
+});
+
+app.on('will-finish-launching', () => {
+    app.on('open-file', (event, file) => {
+        const win = createWindow();
+        win.once('ready-to-show', () => {
+            openFile(win, file);
+        });
+    });
 });
