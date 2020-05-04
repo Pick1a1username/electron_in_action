@@ -31,7 +31,7 @@ const updateUserInterface = (isEdited) => {
     if (isEdited) title = `${title} (Edited)`;
 
     currentWindow.setTitle(title);
-    
+
     // setDocumentEdited() is only for MacOS.
     // https://github.com/electron/electron/issues/10322
     currentWindow.setDocumentEdited(isEdited);
@@ -49,6 +49,16 @@ const getDroppedFile = (event) => event.dataTransfer.files[0];
 
 const fileTypeIsSupported = (file) => {
     return ['text/plain', 'text/markdown'].includes(file.type);
+}
+
+const renderFile = (file, content) => {
+    filePath = file;
+    originalContent = content;
+
+    markdownView.value = content;
+    renderMarkdownToHtml(content);
+
+    updateUserInterface(false);
 }
 
 markdownView.addEventListener('keyup', (event) => {
@@ -112,11 +122,43 @@ markdownView.addEventListener('drop', (event) => {
 })
 
 ipcRenderer.on('file-opened', (event, file, content) => {
-    filePath = file;
-    originalContent = content;
+    if (currentWindow.isDocumentEdited() || mainProcess.windowCustomProperties.get(currentWindow).documentEdited) {
+        const result = remote.dialog.showMessageBox(currentWindow, {
+            type: 'warning',
+            title: 'Overwrite Current Unsaved Changes?',
+            message: 'Opening a new file in this window will overwrite your unsaved changes. Open this file anyway?',
+            buttons: [
+                'Yes',
+                'Cancel',
+            ],
+            defaultId: 0,
+            cancelId: 1
+        });
 
-    markdownView.value = content;
-    renderMarkdownToHtml(content);
-
-    updateUserInterface();
+        result.then( response => {
+            if (response.response === 1) return;
+            renderFile(file, content);
+        })
+    } else {
+        renderFile(file, content);
+    }
 });
+
+ipcRenderer.on('file-changed', (event, file, content) => {
+    const result = remote.dialog.showMessageBox(currentWindow, {
+        type: 'warning',
+        title: 'Overwrite Current Unsaved Changes?',
+        message: 'Another application has changed this file. Load changes?',
+        buttons: [
+            'Yes',
+            'Cancel',
+        ],
+        defaultId: 0,
+        cancelId: 1
+    });
+
+    result.then( response => {
+        if (response.response === 1) return;
+        renderFile(file, content);
+    })
+})

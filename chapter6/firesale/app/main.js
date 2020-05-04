@@ -12,7 +12,8 @@ const openFile = exports.openFile = (targetWindow, file) => {
     const content = fs.readFileSync(file).toString();
     app.addRecentDocument(file); // This doesn't seem to be needed for Linux.
     targetWindow.setRepresentedFilename(file); // This is only for MacOS.
-    targetWindow.webContents.send('file-opened', file, content)
+    targetWindow.webContents.send('file-opened', file, content);
+    startWatchingFile(targetWindow, file);
 };
 
 const getFileFromUser = exports.getFileFromUser = (targetWindow) => {
@@ -23,18 +24,6 @@ const getFileFromUser = exports.getFileFromUser = (targetWindow) => {
             { name: 'Markdown Files', extensions: ['md', 'markdown'] }
         ]
     });
-  
-    if (!files) return;
-  
-    // 'files' is Promise.
-    // console.log(files);
-
-    // files.then( files => console.log(files));
-
-    // const file = files[0];
-    // const content = fs.readFileSync(file).toString();
-
-    // console.log(content);
 
     files.then( files => {
         if (files.filePaths[0]) openFile(targetWindow, files.filePaths[0]);
@@ -139,10 +128,10 @@ const createWindow = exports.createWindow = () => {
 const startWatchingFile = (targetWindow, file) => {
     stopWatchingFile(targetWindow);
 
-    const watcher = fs.watchFile(file, (event) => {
-        if (event === 'change') {
-            const content = fs.readFileSync(file);
-            targetWindow.webContents.send('file-opened', file, content);
+    const watcher = fs.watchFile(file, (curr, prev) => {
+        if (curr.ino !== 0) {
+            const content = fs.readFileSync(file).toString();
+            targetWindow.webContents.send('file-changed', file, content);
         }
     });
 
