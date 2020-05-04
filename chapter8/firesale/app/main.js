@@ -2,7 +2,7 @@ const fs = require('fs');
 
 const { app, BrowserWindow, dialog, Menu } = require('electron');
 
-const applicationMenu = require('./application-menu');
+const createApplicationMenu = require('./application-menu');
 
 const windows = new Set();
 const openFiles = new Map();
@@ -13,8 +13,14 @@ const openFile = exports.openFile = (targetWindow, file) => {
     const content = fs.readFileSync(file).toString();
     app.addRecentDocument(file); // This doesn't seem to be needed for Linux.
     targetWindow.setRepresentedFilename(file); // This is only for MacOS.
+
+    // This is not in the textbook. This will be used instead of browserWindow.setRepresentedFilename() for Windows and Linux.
+    targetWindowCustomProperties = windowCustomProperties.get(targetWindow);
+    windowCustomProperties.set(targetWindow, { ...targetWindowCustomProperties, representedFilename: file});
+
     targetWindow.webContents.send('file-opened', file, content);
     startWatchingFile(targetWindow, file);
+    createApplicationMenu(windowCustomProperties);
 };
 
 const getFileFromUser = exports.getFileFromUser = (targetWindow) => {
@@ -87,9 +93,12 @@ const createWindow = exports.createWindow = () => {
         newWindow.show();
     });
 
+    newWindow.on('focus', () => createApplicationMenu(windowCustomProperties));
+
     newWindow.on('closed', () => {
         windows.delete(newWindow);
         stopWatchingFile(newWindow);
+        createApplicationMenu(windowCustomProperties);
         newWindow = null;
     });
 
@@ -145,7 +154,7 @@ const stopWatchingFile = (targetWindow) => {
 }
 
 app.on('ready', () => {
-    Menu.setApplicationMenu(applicationMenu);
+    createApplicationMenu(windowCustomProperties);
     createWindow();
 });
 

@@ -20,28 +20,6 @@ const currentWindow = remote.getCurrentWindow();
 
 let filePath = null;
 let originalContent = '';
-const markdownContextMenu = Menu.buildFromTemplate([
-    {
-        label: 'Open File',
-        click(item, focusedWindow) {
-            if (focusedWindow) {
-                return mainProcess.getFileFromUser(focusedWindow);
-            }
-            
-            const newWindow = mainProcess.createWindow();
-
-            newWindow.on('show', () => {
-                mainProcess.getFileFromUser(newWindow);
-            });
-        },
-    },
-    { type: 'separator' },
-    { label: 'Cut', role: 'cut' },
-    { label: 'Copy', role: 'copy' },
-    { label: 'Paste', role: 'paste' },
-    { label: 'Select All', role: 'selectall' },
-]);
-
 
 
 const renderMarkdownToHtml = (markdown) => {
@@ -62,7 +40,7 @@ const updateUserInterface = (isEdited) => {
 
     // This is not in the textbook. This will be used instead of browserWindow.setDocumentEdited()
     currentWindowProperties = mainProcess.windowCustomProperties.get(currentWindow);
-    mainProcess.windowCustomProperties.set(currentWindow, {currentWindowProperties, documentEdited: isEdited});
+    mainProcess.windowCustomProperties.set(currentWindow, {...currentWindowProperties, documentEdited: isEdited});
     
     saveMarkdownButton.disabled = !isEdited;
     revertButton.disabled = !isEdited;
@@ -102,6 +80,40 @@ const openInDefaultApplication = () => {
     }
 
     shell.openItem(filePath);
+}
+
+const markdownContextMenu = () => {
+    return Menu.buildFromTemplate([
+        {
+            label: 'Open File',
+            click(item, focusedWindow) {
+                if (focusedWindow) {
+                    return mainProcess.getFileFromUser(focusedWindow);
+                }
+                
+                const newWindow = mainProcess.createWindow();
+
+                newWindow.on('show', () => {
+                    mainProcess.getFileFromUser(newWindow);
+                });
+            },
+        },
+        {
+            label: 'Show File in Folder',
+            click: showFile,
+            enabled: !!filePath
+        },
+        {
+            label: 'Open in Default Editor',
+            click: openInDefaultApplication,
+            enabled: !!filePath
+        },
+        { type: 'separator' },
+        { label: 'Cut', role: 'cut' },
+        { label: 'Copy', role: 'copy' },
+        { label: 'Paste', role: 'paste' },
+        { label: 'Select All', role: 'selectall' },
+    ]);
 }
 
 markdownView.addEventListener('keyup', (event) => {
@@ -166,7 +178,7 @@ markdownView.addEventListener('drop', (event) => {
 
 markdownView.addEventListener('contextmenu', (event) => {
     event.preventDefault();
-    markdownContextMenu.popup();
+    markdownContextMenu().popup();
 });
 
 showFileButton.addEventListener('click', showFile);
@@ -221,3 +233,7 @@ ipcRenderer.on('save-markdown', () => {
 ipcRenderer.on('save-html', () => {
     mainProcess.saveHtml(currentWindow, htmlView.innerHTML);
 });
+
+ipcRenderer.on('show-file', showFile);
+
+ipcRenderer.on('open-in-default', openInDefaultApplication);
