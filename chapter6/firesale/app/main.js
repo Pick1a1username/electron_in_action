@@ -4,7 +4,9 @@ const { app, BrowserWindow, dialog } = require('electron');
 
 
 const windows = new Set();
-let mainWindow = null;
+const openFiles = new Map();
+// This is not in the textbook. This will be used instead of browserWindow.isDocumentEdited()
+const windowCustomProperties = exports.windowCustomProperties = new Map();
 
 const openFile = exports.openFile = (targetWindow, file) => {
     const content = fs.readFileSync(file).toString();
@@ -53,6 +55,23 @@ const saveHtml = exports.saveHtml = (targetWindow, content) => {
     });
 };
 
+const saveMarkdown = exports.saveMarkdown = (targetWindow, file, content) => {
+    if (!file) {
+        file = dialog.showSaveDialog(targetWindow, {
+            title: 'Save Markdown',
+            defaultPath: app.getPath('documents'),
+            filters: [
+                { name: 'Markdown Files', extensions: ['md', 'markdown'] }
+            ]
+        });
+    }
+
+    file.then( file => {
+        if (file.filePath) fs.writeFileSync(file.filePath, content);
+        openFile(targetWindow, file);
+    });
+}
+
 const createWindow = exports.createWindow = () => {
     let x, y;
 
@@ -80,13 +99,62 @@ const createWindow = exports.createWindow = () => {
 
     newWindow.on('closed', () => {
         windows.delete(newWindow);
+        stopWatchingFile(newWindow);
         newWindow = null;
     });
 
+    newWindow.on('close', (event) => {
+        if (newWindow.isDocumentEdited() || windowCustomProperties.get(newWindow).documentEdited ) {
+            event.preventDefault();
+
+            const result = dialog.showMessageBox(newWindow, {
+                type: 'warning',
+                title: 'Quit with Unsaved Changes?',
+                message: 'Your changes will be lost if you do not save.',
+                buttons: [
+                    'Quit Anyway',
+                    'Cancel',
+                ],
+                defaultId: 0,
+                cancelId: 1
+            });
+
+            result.then( result => {
+                if (result === 0) {
+                    windowCustomProperties.delete(newWindow);
+                    newWindow.destroy();
+                    return;
+                }
+            });
+        }
+
+        windowCustomProperties.delete(newWindow);
+    })
+
     windows.add(newWindow);
+    windowCustomProperties.set(newWindow, {});
     return newWindow;
 }
 
+const startWatchingFile = (targetWindow, file) => {
+    stopWatchingFile(targetWindow);
+
+    const watcher = fs.watchFile(file, (event) => {
+        if (event === 'change') {
+            const content = fs.readFileSync(file);
+            targetWindow.webContents.send('file-opened', file, content);
+        }
+    });
+
+    openFiles.set(targetWindow, watcher);
+}
+
+const stopWatchingFile = (targetWindow) => {
+    if (openFiles.has(targetWindow)) {
+        openFiles.get(targetWindow).stop();
+        openFiles.delete(targetWindow);
+    }
+}
 
 app.on('ready', () => {
     createWindow();
