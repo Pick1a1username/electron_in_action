@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width,initial-scale=1">
+        <meta http-squiv="Content-Security-Policy"
+              content="
+                  default-src 'self';
+                  script-src 'self' 'unsafe-inline';
+                  connect-src https://cliphub.glitch.com/*
+              "
+        >
+        <title>Clipmaste 9000</title>
+        <link rel="stylesheet" href="style.css" type="text/css">
+    </head>
+
+    <body>
+        <div class="container">
+            <section class="controls">
+                <button id="copy-from-clipboard">Copy from Clipboard</button>    
+            </section>
+
+            <section class="content">
+                <div id="clippings-list"></div>
+            </section>
+        </div>
+        
+        <script>
+            require('./renderer');
+        </script>
+    </body>
+
+</html>
+

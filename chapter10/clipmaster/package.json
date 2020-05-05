@@ -1,0 +1,17 @@
+{
+  "name": "clipmaster",
+  "version": "1.0.0",
+  "description": "",
+  "main": "./app/main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "electron": "^8.2.5",
+    "menubar": "^8.0.2"
+  },
+  "devDependencies": {}
+}
