@@ -119,7 +119,7 @@ html {
   }
   
   button.remove-clipping {
-    display: none;
+    /* display: none; */
     float: right;
     color: white;
     background-color: rgb(208, 69, 55);
