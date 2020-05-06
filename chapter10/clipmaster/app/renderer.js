@@ -4,7 +4,7 @@ const request = require('request').defaults({
     json: true,
 });
 
-const { clipboard } = require('electron');
+const { clipboard, ipcRenderer, shell } = require('electron');
 
 const clippingsList = document.getElementById('clippings-list');
 const copyFromClipboardButton = document.getElementById('copy-from-clipboard');
@@ -82,12 +82,19 @@ const publishClipping = (clipping) => {
     // -d '{ "clipping": "text" }' \
     // https://cliphub.glitch.me/clippings
     request.post({ json: { clipping } }, (error, response, body) => {
-        if (error) return alert(JSON.parse(error).message);
+        if (error) return new Notification(
+            'Error Publishing Your Clipping',
+            { body: JSON.parse(error).message }
+        );
 
-        console.log(body);
         const url = body.url;
+        const notification = new Notification(
+            'Your Clipping Has Been Published',
+            { body: `Click to open ${url} in your browser.` }
+        );
 
-        alert(url);
+        notification.onclick = () => { shell.openExternal(url); };
+
         clipboard.writeText(url);
     });
 };
@@ -103,3 +110,25 @@ clippingsList.addEventListener('click', (event) => {
     if (hasClass('copy-clipping')) writeToClipboard(getClippingText(clippingListItem));
     if (hasClass('publish-clipping')) publishClipping(getClippingText(clippingListItem));
 });
+
+ipcRenderer.on('create-new-clipping', () => {
+    addClippingToList();
+    new Notification(
+        'Clipping Added',
+        { body: clipboard.readText() }
+    );
+});
+
+ipcRenderer.on('write-to-clipboard', () => {
+    // We don't know which clipping the user want,
+    // so grab the first one.
+    const clipping = clippingsList.firstChild;
+    writeToClipboard(getClippingText(clipping));
+});
+
+ipcRenderer.on('publish-clipping', () => {
+    // We don't know which clipping the user want,
+    // so grab the first one.
+    const clipping = clippingsList.firstChild;
+    publishClipping(getClippingText(clipping));
+})
