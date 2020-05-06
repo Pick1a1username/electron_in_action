@@ -35,7 +35,7 @@ html {
     bottom: 0;
     left: 0;
     right: 0;
-    overflow: auto;
+    overflow: hidden;
   }
   
   textarea, input, div, button { outline: none; }
@@ -43,8 +43,8 @@ html {
   .controls {
     background-color: rgb(217, 241, 238);
     padding: 1em;
-    top: 0;
-    position: fixed;
+    /* top: 0; */
+    /* position: fixed; */
     width: 100%;
   }
   
@@ -68,6 +68,7 @@ html {
   
   .content {
     height: 100%;
+    overflow: auto;
   }
   
   .clippings-list {
