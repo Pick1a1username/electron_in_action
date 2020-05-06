@@ -1,3 +1,9 @@
+const request = require('request').defaults({
+    url: 'https://cliphub.glitch.me/clippings',
+    headers: { 'User-Agent': 'Clipmaster 9000' },
+    json: true,
+});
+
 const { clipboard } = require('electron');
 
 const clippingsList = document.getElementById('clippings-list');
@@ -65,6 +71,27 @@ const writeToClipboard = (clippingText) => {
     clipboard.writeText(clippingText);
 }
 
+/**
+ * 
+ * @param {String} clipping 
+ */
+const publishClipping = (clipping) => {
+    //  curl -v -X POST \
+    // -H 'User-Agent: Clipmaster 9000' \
+    // -H 'Content-Type: application/json' \
+    // -d '{ "clipping": "text" }' \
+    // https://cliphub.glitch.me/clippings
+    request.post({ json: { clipping } }, (error, response, body) => {
+        if (error) return alert(JSON.parse(error).message);
+
+        console.log(body);
+        const url = body.url;
+
+        alert(url);
+        clipboard.writeText(url);
+    });
+};
+
 copyFromClipboardButton.addEventListener('click', addClippingToList);
 
 clippingsList.addEventListener('click', (event) => {
@@ -74,6 +101,5 @@ clippingsList.addEventListener('click', (event) => {
 
     if (hasClass('remove-clipping')) removeClipping(clippingListItem);
     if (hasClass('copy-clipping')) writeToClipboard(getClippingText(clippingListItem));
-    if (hasClass('publish-clipping')) console.log('Publish clipping'
-    );
+    if (hasClass('publish-clipping')) publishClipping(getClippingText(clippingListItem));
 });

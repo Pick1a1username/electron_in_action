@@ -1,0 +1,53 @@
+$ curl -v -X POST -H 'User-Agent: Clipmaster 9000' -H 'Content-Type: application/json' -d '{ "clipping": "test" }' https
+://cliphub.glitch.me/clippings
+Note: Unnecessary use of -X or --request, POST is already inferred.
+*   Trying 52.87.70.69:443...
+* TCP_NODELAY set
+* Connected to cliphub.glitch.me (52.87.70.69) port 443 (#0)
+* ALPN, offering h2
+* ALPN, offering http/1.1
+* successfully set certificate verify locations:
+*   CAfile: none
+  CApath: /etc/ssl/certs
+* TLSv1.3 (OUT), TLS handshake, Client hello (1):
+* TLSv1.3 (IN), TLS handshake, Server hello (2):
+* TLSv1.2 (IN), TLS handshake, Certificate (11):
+* TLSv1.2 (IN), TLS handshake, Server key exchange (12):
+* TLSv1.2 (IN), TLS handshake, Server finished (14):
+* TLSv1.2 (OUT), TLS handshake, Client key exchange (16):
+* TLSv1.2 (OUT), TLS change cipher, Change cipher spec (1):
+* TLSv1.2 (OUT), TLS handshake, Finished (20):
+* TLSv1.2 (IN), TLS handshake, Finished (20):
+* SSL connection using TLSv1.2 / ECDHE-RSA-AES128-GCM-SHA256
+* ALPN, server accepted to use h2
+* Server certificate:
+*  subject: CN=glitch.com
+*  start date: Feb 18 00:00:00 2020 GMT
+*  expire date: Mar 18 12:00:00 2021 GMT
+*  subjectAltName: host "cliphub.glitch.me" matched cert's "*.glitch.me"
+*  issuer: C=US; O=Amazon; OU=Server CA 1B; CN=Amazon
+*  SSL certificate verify ok.
+* Using HTTP2, server supports multi-use
+* Connection state changed (HTTP/2 confirmed)
+* Copying HTTP/2 data in stream buffer to connection buffer after upgrade: len=0
+* Using Stream ID: 1 (easy handle 0x7fffe2d20eb0)
+> POST /clippings HTTP/2
+> Host: cliphub.glitch.me
+> Accept: */*
+> User-Agent: Clipmaster 9000
+> Content-Type: application/json
+> Content-Length: 22
+>
+* Connection state changed (MAX_CONCURRENT_STREAMS == 128)!
+* We are completely uploaded and fine
+< HTTP/2 201
+< date: Wed, 06 May 2020 02:08:21 GMT
+< content-type: application/json; charset=utf-8
+< content-length: 124
+< x-powered-by: Express
+< etag: W/"7c-QdRlRTEOAN9zDfidl63LE7bhiTU"
+<
+* Connection #0 to host cliphub.glitch.me left intact
+{"id":"498ffe0a-323f-4fca-80d5-9f9705b034f4","url":"http:/cliphub.glitch.me/clippings/498ffe0a-323f-4fca-80d5-9f9705b034f4"}$
+$
+$
