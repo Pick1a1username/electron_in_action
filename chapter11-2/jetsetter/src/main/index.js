@@ -10,7 +10,16 @@ const isDevelopment = process.env.NODE_ENV !== 'production'
 let mainWindow
 
 function createMainWindow() {
-  const window = new BrowserWindow({webPreferences: {nodeIntegration: true}})
+  const window = new BrowserWindow({
+    width: 300,
+    height: 600,
+    minWidth: 300,
+    minHeight: 300,
+    show: false,
+    webPreferences: {
+      nodeIntegration: true
+    }
+  })
 
   if (isDevelopment) {
     window.webContents.openDevTools()
@@ -59,4 +68,8 @@ app.on('activate', () => {
 // create main BrowserWindow when electron is ready
 app.on('ready', () => {
   mainWindow = createMainWindow()
+  
+  mainWindow.once('ready-to-show', () => {
+    mainWindow.show();
+  });
 })
