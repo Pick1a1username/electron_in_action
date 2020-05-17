@@ -2,11 +2,13 @@
   "name": "firesale",
   "version": "1.0.0",
   "description": "",
+  "productName": "Fire Sale",
   "main": "./app/main.js",
   "scripts": {
     "start": "electron .",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "electron-packager . --out=build"
+    "build-win": "electron-packager . --asar --platform=win32 --overwrite --out=build --icon=icons/Icon.ico",
+    "build-linux": "electron-packager . --asar --platform=linux --overwrite --out=build --icon=icons/Icon.png"
   },
   "keywords": [],
   "author": "",
