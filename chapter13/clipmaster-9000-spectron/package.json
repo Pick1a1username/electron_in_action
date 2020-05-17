@@ -5,7 +5,8 @@
   "main": "./app/main.js",
   "scripts": {
     "start": "electron .",
-    "postinstall": "electron-rebuild"
+    "postinstall": "electron-rebuild",
+    "test": "mocha"
   },
   "keywords": [],
   "author": "",
